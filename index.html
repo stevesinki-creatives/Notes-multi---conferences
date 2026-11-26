@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>ConfNote v10</title>
+  <title>ConfNote v11</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -21,7 +21,7 @@
         <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
           <span class="inline-block w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
           ConfNote
-          <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">v10</span>
+          <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">v11</span>
         </h1>
         <p class="text-xs text-slate-400 mt-0.5">Enregistrement audio et capture de diapositives</p>
       </div>
@@ -35,9 +35,9 @@
         <label for="apiKeyInput" class="text-sm font-semibold text-slate-200">Cle API Google AI Studio (Gemini)</label>
         <button type="button" id="btnCloseSettings" class="text-xs text-slate-400 hover:text-white">Fermer</button>
       </div>
-      <p class="text-xs text-slate-400 mb-3">Sauvegardee uniquement sur cet appareil.</p>
+      <p class="text-xs text-slate-400 mb-3">Sauvegardee uniquement sur cet appareil. Ne pas renommer la cle dans AI Studio.</p>
       <div class="flex gap-2">
-        <input type="text" id="apiKeyInput" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="AQ...." class="flex-1 px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-indigo-500" />
+        <input type="text" id="apiKeyInput" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="AQ.... ou AIzaSy..." class="flex-1 px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-indigo-500" />
         <button type="button" id="btnSaveKey" class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-sm font-semibold text-white">Enregistrer</button>
       </div>
       <p id="keyStatus" class="text-xs text-emerald-400 mt-2 hidden">Cle enregistree avec succes.</p>
@@ -78,7 +78,7 @@
         </div>
 
         <div id="diagBanner" class="w-full mt-3 p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-left text-[11px] text-slate-400 font-mono break-words">
-          Etat systeme : pret v10 (en attente de la cle API)
+          Etat systeme : pret v11
         </div>
 
         <div class="w-full mt-4 pt-4 border-t border-slate-800">
@@ -207,11 +207,6 @@
 
     function loadSavedKey() {
       if (cachedApiKey) return cachedApiKey;
-      var fromHash = readHashKey();
-      if (fromHash) {
-        cachedApiKey = fromHash;
-        return fromHash;
-      }
       try {
         var fromLocal = localStorage.getItem('confnote_gemini_key');
         if (fromLocal) {
@@ -219,6 +214,11 @@
           return fromLocal;
         }
       } catch (e) {}
+      var fromHash = readHashKey();
+      if (fromHash) {
+        cachedApiKey = fromHash;
+        return fromHash;
+      }
       return apiKeyInput.value.trim();
     }
 
@@ -235,7 +235,7 @@
       settingsPanel.classList.add('hidden');
       logDiag('Etat systeme : cle API active (' + initialKey.slice(0, 6) + '...)');
     } else {
-      logDiag('Etat systeme : script v10 actif (en attente de cle API)');
+      logDiag('Etat systeme : script v11 actif (en attente de cle API)');
     }
 
     btnSettings.onclick = function() {
@@ -253,6 +253,7 @@
         return;
       }
       persistApiKey(val);
+      errorBox.classList.add('hidden');
       keyStatus.classList.remove('hidden');
       logDiag('Etat systeme : cle API active (' + val.slice(0, 6) + '...)');
       setTimeout(function() {
@@ -274,7 +275,22 @@
       return Math.max(0, Math.floor((now - startTime - pausedDuration) / 1000));
     }
 
+    function resetRecordingWorkspace() {
+      audioBlob = null;
+      audioChunks = [];
+      structuredRows = [];
+      slides = [];
+      renderSlides();
+      timerDisplay.textContent = '00:00:00';
+      errorBox.textContent = '';
+      errorBox.classList.add('hidden');
+      loadingBox.classList.add('hidden');
+      processSection.classList.add('hidden');
+      resultSection.classList.add('hidden');
+    }
+
     btnStart.onclick = function() {
+      resetRecordingWorkspace();
       logDiag('Ouverture du microphone...');
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         logDiag('Erreur : microphone indisponible (HTTPS requis).', true);
@@ -444,15 +460,10 @@
     };
 
     btnClearSession.onclick = function() {
-      slides = [];
-      audioBlob = null;
-      audioChunks = [];
-      structuredRows = [];
-      timerDisplay.textContent = '00:00:00';
+      resetRecordingWorkspace();
+      statusDot.className = 'w-2 h-2 rounded-full bg-slate-500';
       statusText.textContent = 'Pret a enregistrer';
-      renderSlides();
-      resultSection.classList.add('hidden');
-      updateProcessVisibility();
+      btnStart.textContent = 'Demarrer';
     };
 
     function updateProcessVisibility() {
