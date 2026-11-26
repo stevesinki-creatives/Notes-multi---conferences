@@ -25,21 +25,21 @@
         </h1>
         <p class="text-xs text-slate-400 mt-0.5">Enregistrement audio + Capture de diapositives en parallèle</p>
       </div>
-      <button id="btnSettings" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-700 transition">
+      <button type="button" id="btnSettings" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-700 transition">
         Clé API Gemini
       </button>
     </header>
 
-    <!-- API Key Modal / Panel -->
+    <!-- API Key Panel -->
     <div id="settingsPanel" class="hidden mb-6 p-4 rounded-xl bg-slate-900 border border-slate-800 shadow-lg">
       <div class="flex items-center justify-between mb-2">
         <label for="apiKeyInput" class="text-sm font-semibold text-slate-200">Clé API Google AI Studio (Gemini)</label>
-        <button id="btnCloseSettings" class="text-xs text-slate-400 hover:text-white">Fermer</button>
+        <button type="button" id="btnCloseSettings" class="text-xs text-slate-400 hover:text-white">Fermer</button>
       </div>
-      <p class="text-xs text-slate-400 mb-3">Sauvegardée uniquement en local sur cet appareil (localStorage). Modèle utilisé : <code class="text-indigo-400">gemini-2.5-flash</code>.</p>
+      <p class="text-xs text-slate-400 mb-3">Sauvegardée uniquement en local sur cet appareil. Modèle : <code class="text-indigo-400">gemini-2.5-flash</code>.</p>
       <div class="flex gap-2">
         <input type="password" id="apiKeyInput" placeholder="AIzaSy..." class="flex-1 px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-indigo-500" />
-        <button id="btnSaveKey" class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-sm font-semibold text-white transition">Enregistrer</button>
+        <button type="button" id="btnSaveKey" class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-sm font-semibold text-white transition">Enregistrer</button>
       </div>
       <p id="keyStatus" class="text-xs text-emerald-400 mt-2 hidden">Clé enregistrée avec succès.</p>
     </div>
@@ -49,11 +49,11 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label class="block text-xs font-medium text-slate-400 mb-1">Titre de la conférence / rencontre</label>
-          <input type="text" id="sessionTitle" placeholder="Ex. Comité stratégique — Architecture données" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-indigo-500" />
+          <input type="text" id="sessionTitle" placeholder="Ex. Tenue de dossiers" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-indigo-500" />
         </div>
         <div>
           <label class="block text-xs font-medium text-slate-400 mb-1">Conférencier / Intervenant</label>
-          <input type="text" id="speakerName" placeholder="Ex. Jean Dupont" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-indigo-500" />
+          <input type="text" id="speakerName" placeholder="Ex. Collecto" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-indigo-500" />
         </div>
       </div>
     </section>
@@ -69,24 +69,27 @@
         <div id="timerDisplay" class="text-4xl font-bold tabular-nums tracking-tight text-white mb-5">00:00:00</div>
 
         <div class="flex flex-wrap items-center justify-center gap-3 w-full">
-          <button id="btnStart" class="flex-1 min-w-[140px] py-3.5 px-5 rounded-xl bg-rose-600 hover:bg-rose-500 active:scale-[0.99] text-white font-semibold text-sm shadow-lg shadow-rose-950/50 transition flex items-center justify-center gap-2">
+          <button type="button" id="btnStart" class="flex-1 min-w-[140px] py-3.5 px-5 rounded-xl bg-rose-600 hover:bg-rose-500 active:scale-[0.99] text-white font-semibold text-sm shadow-lg shadow-rose-950/50 transition flex items-center justify-center gap-2">
             <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></svg>
             Démarrer
           </button>
 
-          <button id="btnPause" disabled class="hidden py-3.5 px-4 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-semibold text-sm transition">
+          <button type="button" id="btnPause" class="hidden py-3.5 px-4 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-semibold text-sm transition">
             Pause
           </button>
 
-          <button id="btnStop" disabled class="hidden py-3.5 px-5 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-semibold text-sm transition">
+          <button type="button" id="btnStop" class="hidden py-3.5 px-5 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-semibold text-sm transition">
             Terminer
           </button>
         </div>
 
+        <!-- Diagnostic Banner -->
+        <div id="diagBanner" class="hidden w-full mt-3 p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-left text-[11px] text-slate-300 font-mono break-words"></div>
+
         <!-- Slide Capture Button -->
         <div class="w-full mt-4 pt-4 border-t border-slate-800">
           <input type="file" id="cameraInput" accept="image/*" capture="environment" class="hidden" />
-          <button id="btnCaptureSlide" class="w-full py-4 px-5 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-[0.99] text-white font-semibold text-base shadow-lg shadow-indigo-950/50 transition flex items-center justify-center gap-2.5">
+          <button type="button" id="btnCaptureSlide" class="w-full py-4 px-5 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-[0.99] text-white font-semibold text-base shadow-lg shadow-indigo-950/50 transition flex items-center justify-center gap-2.5">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
               <circle cx="12" cy="13" r="3"/>
@@ -102,14 +105,14 @@
     <section id="slidesSection" class="mb-6 hidden">
       <div class="flex items-center justify-between mb-3">
         <h2 class="text-sm font-semibold text-slate-200">Diapositives capturées (<span id="slideCount">0</span>)</h2>
-        <button id="btnClearSession" class="text-xs text-rose-400 hover:text-rose-300">Réinitialiser la session</button>
+        <button type="button" id="btnClearSession" class="text-xs text-rose-400 hover:text-rose-300">Réinitialiser la session</button>
       </div>
       <div id="slidesList" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
     </section>
 
     <!-- Generate Parallel Report Action -->
     <section id="processSection" class="mb-8 hidden">
-      <button id="btnGenerate" class="w-full py-4 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-base shadow-lg shadow-emerald-950/50 transition flex items-center justify-center gap-2">
+      <button type="button" id="btnGenerate" class="w-full py-4 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-base shadow-lg shadow-emerald-950/50 transition flex items-center justify-center gap-2">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
         </svg>
@@ -128,16 +131,15 @@
       <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
         <h2 class="text-base font-bold text-white">Aperçu du compte rendu parallèle</h2>
         <div class="flex gap-2">
-          <button id="btnExportDocx" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow transition flex items-center gap-1.5">
+          <button type="button" id="btnExportDocx" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow transition flex items-center gap-1.5">
             Télécharger .DOCX
           </button>
-          <button id="btnExportPdf" class="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold shadow transition flex items-center gap-1.5">
+          <button type="button" id="btnExportPdf" class="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold shadow transition flex items-center gap-1.5">
             Télécharger .PDF
           </button>
         </div>
       </div>
 
-      <!-- Printable / Preview Container -->
       <div id="printableReport" class="bg-white text-slate-900 rounded-xl p-6 shadow-xl overflow-x-auto">
         <div class="border-b-2 border-slate-800 pb-3 mb-4">
           <h3 id="reportTitle" class="text-lg font-bold text-slate-900">Compte rendu de conférence</h3>
@@ -157,11 +159,10 @@
   </div>
 
   <script>
-    // State
     let mediaRecorder = null;
     let audioChunks = [];
     let audioBlob = null;
-    let audioMimeType = 'audio/webm';
+    let audioMimeType = '';
     let startTime = null;
     let pausedDuration = 0;
     let pauseStart = null;
@@ -169,10 +170,9 @@
     let isRecording = false;
     let isPaused = false;
     let wakeLock = null;
-    let slides = []; // { id, timestampSec, timestampStr, base64, mimeType, dataUrl }
-    let structuredRows = []; // { slide_label, timestamp, slide_text, transcript_notes }
+    let slides = [];
+    let structuredRows = [];
 
-    // Elements
     const btnSettings = document.getElementById('btnSettings');
     const settingsPanel = document.getElementById('settingsPanel');
     const btnCloseSettings = document.getElementById('btnCloseSettings');
@@ -186,6 +186,7 @@
     const timerDisplay = document.getElementById('timerDisplay');
     const statusDot = document.getElementById('statusDot');
     const statusText = document.getElementById('statusText');
+    const diagBanner = document.getElementById('diagBanner');
 
     const btnCaptureSlide = document.getElementById('btnCaptureSlide');
     const cameraInput = document.getElementById('cameraInput');
@@ -207,7 +208,14 @@
     const btnExportDocx = document.getElementById('btnExportDocx');
     const btnExportPdf = document.getElementById('btnExportPdf');
 
-    // Load saved API key
+    function logDiag(msg, isError = false) {
+      diagBanner.classList.remove('hidden');
+      diagBanner.className = isError
+        ? 'w-full mt-3 p-2.5 rounded-lg bg-rose-950/80 border border-rose-800 text-left text-[11px] text-rose-200 font-mono break-words'
+        : 'w-full mt-3 p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-left text-[11px] text-emerald-300 font-mono break-words';
+      diagBanner.textContent = msg;
+    }
+
     const savedKey = localStorage.getItem('confnote_gemini_key');
     if (savedKey) {
       apiKeyInput.value = savedKey;
@@ -229,7 +237,6 @@
       }
     });
 
-    // Formatting Helpers
     function formatSeconds(totalSec) {
       const hrs = Math.floor(totalSec / 3600);
       const mins = Math.floor((totalSec % 3600) / 60);
@@ -248,9 +255,7 @@
         if ('wakeLock' in navigator) {
           wakeLock = await navigator.wakeLock.request('screen');
         }
-      } catch (err) {
-        console.warn('WakeLock non disponible:', err);
-      }
+      } catch (err) {}
     }
 
     function releaseWakeLock() {
@@ -260,35 +265,56 @@
       }
     }
 
-    // Audio Recording
+    // Audio Recording (Safari iOS native default constructor without forced mimeType)
     btnStart.addEventListener('click', async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        const preferredTypes = ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm', 'audio/ogg'];
-        audioMimeType = preferredTypes.find(t => MediaRecorder.isTypeSupported(t)) || '';
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          logDiag("Erreur : navigator.mediaDevices indisponible (vérifiez HTTPS).", true);
+          return;
+        }
+        if (typeof MediaRecorder === 'undefined') {
+          logDiag("Erreur : MediaRecorder non supporté par ce navigateur.", true);
+          return;
+        }
 
-        mediaRecorder = audioMimeType ? new MediaRecorder(stream, { mimeType: audioMimeType }) : new MediaRecorder(stream);
-        audioMimeType = mediaRecorder.mimeType || 'audio/webm';
+        logDiag("Demande d'accès au microphone...");
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+        // Omit options object so iOS Safari selects its native container cleanly
+        mediaRecorder = new MediaRecorder(stream);
+        audioMimeType = mediaRecorder.mimeType || 'audio/mp4';
         audioChunks = [];
 
         mediaRecorder.ondataavailable = (e) => {
-          if (e.data && e.data.size > 0) audioChunks.push(e.data);
+          if (e.data && e.data.size > 0) {
+            audioChunks.push(e.data);
+          }
+        };
+
+        mediaRecorder.onerror = (e) => {
+          logDiag("Erreur MediaRecorder : " + (e.error?.message || "échec d'encodage"), true);
         };
 
         mediaRecorder.onstop = () => {
-          audioBlob = new Blob(audioChunks, { type: audioMimeType });
+          const finalType = mediaRecorder.mimeType || audioMimeType || 'audio/mp4';
+          audioBlob = new Blob(audioChunks, { type: finalType });
+          audioMimeType = finalType;
           stream.getTracks().forEach(track => track.stop());
           releaseWakeLock();
+          logDiag(`Audio capturé (${(audioBlob.size / 1024).toFixed(1)} Ko, format ${finalType})`);
           updateProcessVisibility();
         };
 
-        mediaRecorder.start(1000);
+        // Call start() without timeslice argument for maximum Safari iOS stability
+        mediaRecorder.start();
+
         startTime = Date.now();
         pausedDuration = 0;
         isRecording = true;
         isPaused = false;
         await requestWakeLock();
 
+        clearInterval(timerInterval);
         timerInterval = setInterval(() => {
           timerDisplay.textContent = formatSeconds(getElapsedSeconds());
         }, 500);
@@ -297,31 +323,34 @@
         statusText.textContent = 'Enregistrement en cours...';
         btnStart.classList.add('hidden');
         btnPause.classList.remove('hidden');
-        btnPause.disabled = false;
         btnStop.classList.remove('hidden');
-        btnStop.disabled = false;
+        logDiag(`Micro actif (${audioMimeType || 'format natif iOS'})`);
       } catch (err) {
-        alert("Impossible d'accéder au microphone. Vérifiez les autorisations Safari : " + err.message);
+        logDiag("Échec démarrage micro : " + err.name + " - " + err.message, true);
       }
     });
 
     btnPause.addEventListener('click', () => {
       if (!mediaRecorder) return;
-      if (!isPaused) {
-        mediaRecorder.pause();
-        isPaused = true;
-        pauseStart = Date.now();
-        btnPause.textContent = 'Reprendre';
-        statusDot.className = 'w-2 h-2 rounded-full bg-amber-400';
-        statusText.textContent = 'En pause';
-      } else {
-        mediaRecorder.resume();
-        pausedDuration += Date.now() - pauseStart;
-        pauseStart = null;
-        isPaused = false;
-        btnPause.textContent = 'Pause';
-        statusDot.className = 'w-2 h-2 rounded-full bg-rose-500 animate-ping';
-        statusText.textContent = 'Enregistrement en cours...';
+      try {
+        if (!isPaused) {
+          mediaRecorder.pause();
+          isPaused = true;
+          pauseStart = Date.now();
+          btnPause.textContent = 'Reprendre';
+          statusDot.className = 'w-2 h-2 rounded-full bg-amber-400';
+          statusText.textContent = 'En pause';
+        } else {
+          mediaRecorder.resume();
+          pausedDuration += Date.now() - pauseStart;
+          pauseStart = null;
+          isPaused = false;
+          btnPause.textContent = 'Pause';
+          statusDot.className = 'w-2 h-2 rounded-full bg-rose-500 animate-ping';
+          statusText.textContent = 'Enregistrement en cours...';
+        }
+      } catch (err) {
+        logDiag("Pause non supportée sur cette version iOS : " + err.message, true);
       }
     });
 
@@ -330,8 +359,9 @@
       clearInterval(timerInterval);
       isRecording = false;
       isPaused = false;
-      mediaRecorder.stop();
-
+      if (mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+      }
       statusDot.className = 'w-2 h-2 rounded-full bg-emerald-400';
       statusText.textContent = 'Enregistrement terminé';
       btnPause.classList.add('hidden');
@@ -340,7 +370,7 @@
       btnStart.textContent = 'Nouvel enregistrement';
     });
 
-    // Slide Photo Capture & Client-Side Compression
+    // Slide Photo Capture
     btnCaptureSlide.addEventListener('click', () => {
       cameraInput.click();
     });
@@ -365,7 +395,7 @@
         renderSlides();
         updateProcessVisibility();
       } catch (err) {
-        alert("Erreur lors du traitement de l'image : " + err.message);
+        logDiag("Erreur image : " + err.message, true);
       } finally {
         cameraInput.value = '';
       }
@@ -414,7 +444,7 @@
             <span class="text-xs font-bold text-indigo-400">Diapo ${idx + 1}</span>
             <span class="text-[11px] tabular-nums text-slate-400">${s.timestampStr}</span>
           </div>
-          <button onclick="removeSlide(${s.id})" class="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/70 text-white text-xs flex items-center justify-center hover:bg-rose-600">✕</button>
+          <button type="button" onclick="removeSlide(${s.id})" class="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/70 text-white text-xs flex items-center justify-center hover:bg-rose-600">✕</button>
         </div>
       `).join('');
     }
@@ -434,6 +464,7 @@
       timerDisplay.textContent = '00:00:00';
       statusDot.className = 'w-2 h-2 rounded-full bg-slate-500';
       statusText.textContent = 'Prêt à enregistrer';
+      diagBanner.classList.add('hidden');
       renderSlides();
       resultSection.classList.add('hidden');
       updateProcessVisibility();
@@ -486,7 +517,7 @@ FORMAT DE SORTIE OBLIGATOIRE (JSON uniquement, sans balises markdown) :
     {
       "slide_label": "Diapositive 1",
       "timestamp": "00:02:15",
-      "slide_text": "Titre de la diapo\n• Point 1\n• Point 2",
+      "slide_text": "Titre de la diapo\\n• Point 1\\n• Point 2",
       "transcript_notes": "Notes détaillées et structurées des propos tenus par le conférencier pendant l'affichage de cette diapositive."
     }
   ]
@@ -497,7 +528,7 @@ FORMAT DE SORTIE OBLIGATOIRE (JSON uniquement, sans balises markdown) :
         if (audioBlob) {
           loadingText.textContent = "Encodage de l'enregistrement audio...";
           const audioBase64 = await blobToBase64(audioBlob);
-          const cleanMime = audioMimeType.split(';')[0] || 'audio/mp4';
+          const cleanMime = (audioMimeType.split(';')[0] || 'audio/mp4').trim();
           parts.push({
             inline_data: {
               mime_type: cleanMime,
@@ -556,8 +587,7 @@ FORMAT DE SORTIE OBLIGATOIRE (JSON uniquement, sans balises markdown) :
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
-        .replace(/
-/g, '<br/>');
+        .replace(/\n/g, '<br/>');
     }
 
     function renderReportPreview() {
@@ -584,10 +614,10 @@ FORMAT DE SORTIE OBLIGATOIRE (JSON uniquement, sans balises markdown) :
       resultSection.scrollIntoView({ behavior: 'smooth' });
     }
 
-    // Export .DOCX (Parallel 2-column table)
+    // Export .DOCX
     btnExportDocx.addEventListener('click', async () => {
       if (!structuredRows.length) return;
-      const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, BorderStyle, ShadingType, HeadingLevel } = window.docx;
+      const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, ShadingType, HeadingLevel } = window.docx;
 
       const title = document.getElementById('sessionTitle').value.trim() || 'Compte rendu de conférence';
       const speaker = document.getElementById('speakerName').value.trim();
