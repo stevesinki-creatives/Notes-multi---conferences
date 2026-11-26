@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>ConfNote v11</title>
+  <title>ConfNote v12</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -21,9 +21,9 @@
         <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
           <span class="inline-block w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
           ConfNote
-          <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">v11</span>
+          <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">v12</span>
         </h1>
-        <p class="text-xs text-slate-400 mt-0.5">Enregistrement audio et capture de diapositives</p>
+        <p class="text-xs text-slate-400 mt-0.5">Enregistrement audio et capture de diapositives (auto-adaptatif)</p>
       </div>
       <button type="button" id="btnSettings" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-700">
         Cle API Gemini
@@ -35,7 +35,7 @@
         <label for="apiKeyInput" class="text-sm font-semibold text-slate-200">Cle API Google AI Studio (Gemini)</label>
         <button type="button" id="btnCloseSettings" class="text-xs text-slate-400 hover:text-white">Fermer</button>
       </div>
-      <p class="text-xs text-slate-400 mb-3">Sauvegardee uniquement sur cet appareil. Ne pas renommer la cle dans AI Studio.</p>
+      <p class="text-xs text-slate-400 mb-3">Sauvegardee uniquement sur cet appareil. Detection automatique du modele actif.</p>
       <div class="flex gap-2">
         <input type="text" id="apiKeyInput" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="AQ.... ou AIzaSy..." class="flex-1 px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-indigo-500" />
         <button type="button" id="btnSaveKey" class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-sm font-semibold text-white">Enregistrer</button>
@@ -78,7 +78,7 @@
         </div>
 
         <div id="diagBanner" class="w-full mt-3 p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-left text-[11px] text-slate-400 font-mono break-words">
-          Etat systeme : pret v11
+          Etat systeme : pret v12
         </div>
 
         <div class="w-full mt-4 pt-4 border-t border-slate-800">
@@ -104,7 +104,7 @@
         Generer la grille Diapos et Transcription
       </button>
       <div id="loadingBox" class="hidden mt-4 p-4 rounded-xl bg-slate-900 border border-slate-800 text-center">
-        <p id="loadingText" class="text-sm text-slate-200 font-medium">Analyse en cours...</p>
+        <p id="loadingText" class="text-sm text-slate-200 font-medium">Detection du modele et analyse...</p>
       </div>
       <div id="errorBox" class="hidden mt-4 p-4 rounded-xl bg-rose-950/60 border border-rose-800 text-sm text-rose-200"></div>
     </section>
@@ -235,7 +235,7 @@
       settingsPanel.classList.add('hidden');
       logDiag('Etat systeme : cle API active (' + initialKey.slice(0, 6) + '...)');
     } else {
-      logDiag('Etat systeme : script v11 actif (en attente de cle API)');
+      logDiag('Etat systeme : script v12 actif (en attente de cle API)');
     }
 
     btnSettings.onclick = function() {
@@ -483,6 +483,49 @@
       });
     }
 
+    // Dynamic Model Discovery so app never breaks when Google updates Gemini versions
+    async function discoverCandidateModels(apiKey) {
+      var fallbackList = [
+        'models/gemini-3.8-flash',
+        'models/gemini-3.5-flash',
+        'models/gemini-3.0-flash',
+        'models/gemini-2.5-flash',
+        'models/gemini-flash-latest'
+      ];
+      try {
+        var res = await fetch('https://generativelanguage.googleapis.com/v1beta/models', {
+          method: 'GET',
+          headers: { 'x-goog-api-key': apiKey }
+        });
+        if (!res.ok) return fallbackList;
+        var data = await res.json();
+        var models = (data.models || []).filter(function(m) {
+          var methods = m.supportedGenerationMethods || [];
+          var name = (m.name || '').toLowerCase();
+          return methods.indexOf('generateContent') !== -1 &&
+            name.indexOf('gemini') !== -1 &&
+            name.indexOf('embedding') === -1 &&
+            name.indexOf('imagen') === -1 &&
+            name.indexOf('veo') === -1;
+        });
+
+        // Sort so newest "flash" models appear first, followed by "pro"
+        models.sort(function(a, b) {
+          var na = a.name.toLowerCase();
+          var nb = b.name.toLowerCase();
+          var aFlash = na.indexOf('flash') !== -1 && na.indexOf('lite') === -1 ? 1 : 0;
+          var bFlash = nb.indexOf('flash') !== -1 && nb.indexOf('lite') === -1 ? 1 : 0;
+          if (aFlash !== bFlash) return bFlash - aFlash;
+          return nb.localeCompare(na);
+        });
+
+        var discovered = models.map(function(m) { return m.name; });
+        return discovered.length > 0 ? discovered.concat(fallbackList) : fallbackList;
+      } catch (e) {
+        return fallbackList;
+      }
+    }
+
     btnGenerate.onclick = async function() {
       var apiKey = loadSavedKey();
       if (!apiKey) {
@@ -512,21 +555,44 @@
           parts.push({ inline_data: { mime_type: s.mimeType, data: s.base64 } });
         });
 
-        loadingText.textContent = 'Generation via Gemini...';
-        var response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
-          body: JSON.stringify({
-            contents: [{ parts: parts }],
-            generationConfig: { temperature: 0.2, responseMimeType: 'application/json' }
-          })
-        });
+        loadingText.textContent = 'Recherche automatique du modele Gemini actif...';
+        var candidates = await discoverCandidateModels(apiKey);
+        var uniqueCandidates = candidates.filter(function(item, pos) { return candidates.indexOf(item) === pos; });
 
-        if (!response.ok) {
-          var errData = await response.json().catch(function() { return {}; });
-          throw new Error((errData.error && errData.error.message) || ('Erreur HTTP ' + response.status));
+        var response = null;
+        var usedModel = '';
+        var lastErrMsg = '';
+
+        for (var i = 0; i < Math.min(uniqueCandidates.length, 6); i++) {
+          var modelPath = uniqueCandidates[i];
+          loadingText.textContent = 'Generation via ' + modelPath.replace('models/', '') + '...';
+          var attempt = await fetch('https://generativelanguage.googleapis.com/v1beta/' + modelPath + ':generateContent', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+            body: JSON.stringify({
+              contents: [{ parts: parts }],
+              generationConfig: { temperature: 0.2, responseMimeType: 'application/json' }
+            })
+          });
+
+          if (attempt.ok) {
+            response = attempt;
+            usedModel = modelPath.replace('models/', '');
+            break;
+          } else {
+            var errData = await attempt.json().catch(function() { return {}; });
+            lastErrMsg = (errData.error && errData.error.message) || ('Erreur HTTP ' + attempt.status);
+            if (attempt.status === 401 || attempt.status === 403) {
+              throw new Error(lastErrMsg);
+            }
+          }
         }
 
+        if (!response) {
+          throw new Error(lastErrMsg || 'Aucun modele Gemini disponible pour cette cle.');
+        }
+
+        logDiag('Modele actif utilise : ' + usedModel);
         var data = await response.json();
         var rawText = data.candidates[0].content.parts[0].text;
         var parsed = JSON.parse(rawText);
