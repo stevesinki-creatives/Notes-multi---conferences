@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>ConfNote v5 — Diapos &amp; Transcription en parallèle</title>
+  <title>ConfNote v6 — Diapos &amp; Transcription en parallèle</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -22,25 +22,25 @@
         <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
           <span class="inline-block w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
           ConfNote
-          <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">v5</span>
+          <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">v6</span>
         </h1>
         <p class="text-xs text-slate-400 mt-0.5">Enregistrement audio + Capture de diapositives en parallèle</p>
       </div>
-      <button type="button" id="btnSettings" onclick="document.getElementById('settingsPanel').classList.toggle('hidden')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-700 transition cursor-pointer">
+      <button type="button" id="btnSettings" onclick="toggleSettingsPanel()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-700 transition cursor-pointer">
         Clé API Gemini
       </button>
     </header>
 
-    <!-- API Key Panel (visible by default until a key is saved) -->
+    <!-- API Key Panel -->
     <div id="settingsPanel" class="mb-6 p-4 rounded-xl bg-slate-900 border border-indigo-700/60 shadow-lg">
       <div class="flex items-center justify-between mb-2">
         <label for="apiKeyInput" class="text-sm font-semibold text-slate-200">Clé API Google AI Studio (Gemini)</label>
-        <button type="button" id="btnCloseSettings" onclick="document.getElementById('settingsPanel').classList.add('hidden')" class="text-xs text-slate-400 hover:text-white">Fermer</button>
+        <button type="button" id="btnCloseSettings" onclick="document.getElementById('settingsPanel').classList.add('hidden')" class="text-xs text-slate-400 hover:text-white cursor-pointer">Fermer</button>
       </div>
       <p class="text-xs text-slate-400 mb-3">Sauvegardée uniquement en local sur cet appareil. Modèle : <code class="text-indigo-400">gemini-2.5-flash</code>.</p>
       <div class="flex gap-2">
-        <input type="password" id="apiKeyInput" placeholder="AQ.... ou AIzaSy..." class="flex-1 px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-indigo-500" />
-        <button type="button" id="btnSaveKey" class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-sm font-semibold text-white transition">Enregistrer</button>
+        <input type="text" id="apiKeyInput" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="AQ.... ou AIzaSy..." class="flex-1 px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-indigo-500" />
+        <button type="button" id="btnSaveKey" onclick="saveApiKey()" class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-sm font-semibold text-white transition cursor-pointer">Enregistrer</button>
       </div>
       <p id="keyStatus" class="text-xs text-emerald-400 mt-2 hidden">Clé enregistrée avec succès.</p>
     </div>
@@ -86,7 +86,7 @@
 
         <!-- Diagnostic Banner -->
         <div id="diagBanner" class="w-full mt-3 p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-left text-[11px] text-slate-400 font-mono break-words">
-          État système : prêt (appuyez sur Démarrer)
+          État système : prêt (en attente de la clé API)
         </div>
 
         <!-- Slide Capture Button -->
@@ -117,234 +117,4 @@
     <section id="processSection" class="mb-8 hidden">
       <button type="button" id="btnGenerate" class="w-full py-4 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-base shadow-lg shadow-emerald-950/50 transition flex items-center justify-center gap-2">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-        </svg>
-        Générer la grille Diapos + Transcription
-      </button>
-      <div id="loadingBox" class="hidden mt-4 p-4 rounded-xl bg-slate-900 border border-slate-800 text-center">
-        <div class="inline-block w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mb-2"></div>
-        <p id="loadingText" class="text-sm text-slate-200 font-medium">Analyse de l'audio et extraction du texte des diapositives...</p>
-        <p class="text-xs text-slate-400 mt-1">Cette opération peut prendre 15 à 45 secondes selon la durée de la conférence.</p>
-      </div>
-      <div id="errorBox" class="hidden mt-4 p-4 rounded-xl bg-rose-950/60 border border-rose-800 text-sm text-rose-200"></div>
-    </section>
-
-    <!-- Parallel Preview & Export -->
-    <section id="resultSection" class="hidden">
-      <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-        <h2 class="text-base font-bold text-white">Aperçu du compte rendu parallèle</h2>
-        <div class="flex gap-2">
-          <button type="button" id="btnExportDocx" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow transition flex items-center gap-1.5">
-            Télécharger .DOCX
-          </button>
-          <button type="button" id="btnExportPdf" class="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold shadow transition flex items-center gap-1.5">
-            Télécharger .PDF
-          </button>
-        </div>
-      </div>
-
-      <div id="printableReport" class="bg-white text-slate-900 rounded-xl p-6 shadow-xl overflow-x-auto">
-        <div class="border-b-2 border-slate-800 pb-3 mb-4">
-          <h3 id="reportTitle" class="text-lg font-bold text-slate-900">Compte rendu de conférence</h3>
-          <p id="reportMeta" class="text-xs text-slate-600 mt-1"></p>
-        </div>
-        <table class="w-full border-collapse text-left text-xs sm:text-sm">
-          <thead>
-            <tr class="bg-slate-100 border-b-2 border-slate-300">
-              <th class="p-3 font-bold text-slate-800 w-1/2 border-r border-slate-300">Contenu de la diapositive (OCR)</th>
-              <th class="p-3 font-bold text-slate-800 w-1/2">Notes de transcription du conférencier</th>
-            </tr>
-          </thead>
-          <tbody id="reportTableBody" class="divide-y divide-slate-200"></tbody>
-        </table>
-      </div>
-    </section>
-  </div>
-
-  <script>
-    const NL = String.fromCharCode(10);
-    const LINE_SPLIT_RE = new RegExp('\\r?\\n');
-
-    let mediaRecorder = null;
-    let audioChunks = [];
-    let audioBlob = null;
-    let audioMimeType = '';
-    let startTime = null;
-    let pausedDuration = 0;
-    let pauseStart = null;
-    let timerInterval = null;
-    let isRecording = false;
-    let isPaused = false;
-    let wakeLock = null;
-    let slides = [];
-    let structuredRows = [];
-
-    const settingsPanel = document.getElementById('settingsPanel');
-    const apiKeyInput = document.getElementById('apiKeyInput');
-    const btnSaveKey = document.getElementById('btnSaveKey');
-    const keyStatus = document.getElementById('keyStatus');
-
-    const btnStart = document.getElementById('btnStart');
-    const btnPause = document.getElementById('btnPause');
-    const btnStop = document.getElementById('btnStop');
-    const timerDisplay = document.getElementById('timerDisplay');
-    const statusDot = document.getElementById('statusDot');
-    const statusText = document.getElementById('statusText');
-    const diagBanner = document.getElementById('diagBanner');
-
-    const btnCaptureSlide = document.getElementById('btnCaptureSlide');
-    const cameraInput = document.getElementById('cameraInput');
-    const slidesSection = document.getElementById('slidesSection');
-    const slidesList = document.getElementById('slidesList');
-    const slideCount = document.getElementById('slideCount');
-    const btnClearSession = document.getElementById('btnClearSession');
-
-    const processSection = document.getElementById('processSection');
-    const btnGenerate = document.getElementById('btnGenerate');
-    const loadingBox = document.getElementById('loadingBox');
-    const loadingText = document.getElementById('loadingText');
-    const errorBox = document.getElementById('errorBox');
-
-    const resultSection = document.getElementById('resultSection');
-    const reportTitle = document.getElementById('reportTitle');
-    const reportMeta = document.getElementById('reportMeta');
-    const reportTableBody = document.getElementById('reportTableBody');
-    const btnExportDocx = document.getElementById('btnExportDocx');
-    const btnExportPdf = document.getElementById('btnExportPdf');
-
-    function logDiag(msg, isError) {
-      diagBanner.className = isError
-        ? 'w-full mt-3 p-2.5 rounded-lg bg-rose-950/80 border border-rose-800 text-left text-[11px] text-rose-200 font-mono break-words'
-        : 'w-full mt-3 p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-left text-[11px] text-emerald-300 font-mono break-words';
-      diagBanner.textContent = msg;
-    }
-
-    window.onerror = function(message, source, lineno) {
-      logDiag('Erreur JS (ligne ' + lineno + ') : ' + message, true);
-    };
-
-    const savedKey = localStorage.getItem('confnote_gemini_key');
-    if (savedKey) {
-      apiKeyInput.value = savedKey;
-      settingsPanel.classList.add('hidden');
-      logDiag('État système : prêt (clé API chargée)');
-    }
-
-    btnSaveKey.addEventListener('click', function() {
-      const val = apiKeyInput.value.trim();
-      if (!val) {
-        alert('Veuillez coller votre clé API avant de cliquer sur Enregistrer.');
-        return;
-      }
-      localStorage.setItem('confnote_gemini_key', val);
-      keyStatus.classList.remove('hidden');
-      logDiag('État système : clé API enregistrée');
-      setTimeout(function() {
-        keyStatus.classList.add('hidden');
-        settingsPanel.classList.add('hidden');
-      }, 1000);
-    });
-
-    function formatSeconds(totalSec) {
-      const hrs = Math.floor(totalSec / 3600);
-      const mins = Math.floor((totalSec % 3600) / 60);
-      const secs = Math.floor(totalSec % 60);
-      return [hrs, mins, secs].map(function(v) { return String(v).padStart(2, '0'); }).join(':');
-    }
-
-    function getElapsedSeconds() {
-      if (!startTime) return 0;
-      const now = isPaused && pauseStart ? pauseStart : Date.now();
-      return Math.max(0, Math.floor((now - startTime - pausedDuration) / 1000));
-    }
-
-    function requestWakeLock() {
-      if ('wakeLock' in navigator) {
-        navigator.wakeLock.request('screen').then(function(wl) { wakeLock = wl; }).catch(function() {});
-      }
-    }
-
-    function releaseWakeLock() {
-      if (wakeLock) {
-        wakeLock.release().catch(function() {});
-        wakeLock = null;
-      }
-    }
-
-    btnStart.addEventListener('click', function() {
-      logDiag('Clic détecté — ouverture du microphone...');
-
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        logDiag('Erreur : navigator.mediaDevices indisponible (HTTPS requis).', true);
-        return;
-      }
-
-      navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(function(stream) {
-          try {
-            mediaRecorder = new MediaRecorder(stream);
-            audioMimeType = mediaRecorder.mimeType || 'audio/mp4';
-            audioChunks = [];
-
-            mediaRecorder.ondataavailable = function(e) {
-              if (e.data && e.data.size > 0) {
-                audioChunks.push(e.data);
-              }
-            };
-
-            mediaRecorder.onerror = function(e) {
-              logDiag('Erreur MediaRecorder : ' + (e.error ? e.error.message : 'échec'), true);
-            };
-
-            mediaRecorder.onstop = function() {
-              const finalType = mediaRecorder.mimeType || audioMimeType || 'audio/mp4';
-              audioBlob = new Blob(audioChunks, { type: finalType });
-              audioMimeType = finalType;
-              stream.getTracks().forEach(function(track) { track.stop(); });
-              releaseWakeLock();
-              logDiag('Audio terminé (' + (audioBlob.size / 1024).toFixed(1) + ' Ko, ' + finalType + ')');
-              updateProcessVisibility();
-            };
-
-            mediaRecorder.start();
-
-            startTime = Date.now();
-            pausedDuration = 0;
-            isRecording = true;
-            isPaused = false;
-            requestWakeLock();
-
-            clearInterval(timerInterval);
-            timerInterval = setInterval(function() {
-              timerDisplay.textContent = formatSeconds(getElapsedSeconds());
-            }, 500);
-
-            statusDot.className = 'w-2 h-2 rounded-full bg-rose-500 animate-ping';
-            statusText.textContent = 'Enregistrement en cours...';
-            btnStart.classList.add('hidden');
-            btnPause.classList.remove('hidden');
-            btnStop.classList.remove('hidden');
-            logDiag('Enregistrement actif (' + (audioMimeType || 'format natif iOS') + ')');
-          } catch (recErr) {
-            logDiag('Erreur création MediaRecorder : ' + recErr.message, true);
-          }
-        })
-        .catch(function(err) {
-          logDiag('Accès micro refusé/bloqué : ' + err.name + ' — ' + err.message, true);
-        });
-    });
-
-    btnPause.addEventListener('click', function() {
-      if (!mediaRecorder) return;
-      try {
-        if (!isPaused) {
-          mediaRecorder.pause();
-          isPaused = true;
-          pauseStart = Date.now();
-          btnPause.textContent = 'Reprendre';
-          statusDot.className = 'w-2 h-2 rounded-full bg-amber-400';
-          statusText.textContent = 'En pause';
-        } else {
-          mediaRecorder.resume();
-          pausedDuration += Date.now() - pauseStart;
-          pauseStart = null
+          <path stroke-linecap="
