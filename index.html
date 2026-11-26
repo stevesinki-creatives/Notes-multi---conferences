@@ -592,4 +592,43 @@
             }),
             new d.TableCell({
               width: { size: 50, type: d.WidthType.PERCENTAGE },
-              children: [new d.Paragraph({ children: [new d.TextRun({ text: String(r.transcript
+              children: [new d.Paragraph({ children: [new d.TextRun({ text: String(r.transcript_notes || ''), size: 20 })] })]
+            })
+          ]
+        });
+      });
+
+      var doc = new d.Document({
+        sections: [{
+          properties: { page: { size: { orientation: 'landscape' }, margin: { top: 720, right: 720, bottom: 720, left: 720 } } },
+          children: [
+            new d.Paragraph({ heading: d.HeadingLevel.HEADING_1, children: [new d.TextRun({ text: title, bold: true, size: 32 })] }),
+            new d.Paragraph({ children: [new d.TextRun({ text: 'Date : ' + today + (speaker ? ' | Conferencier : ' + speaker : ''), size: 20 })] }),
+            new d.Table({ width: { size: 100, type: d.WidthType.PERCENTAGE }, rows: [headerRow].concat(bodyRows) })
+          ]
+        }]
+      });
+
+      var blob = await d.Packer.toBlob(doc);
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = today + '_Conference.docx';
+      a.click();
+      URL.revokeObjectURL(url);
+    };
+
+    btnExportPdf.onclick = function() {
+      var element = document.getElementById('printableReport');
+      var today = new Date().toISOString().slice(0, 10);
+      html2pdf().set({
+        margin: 10,
+        filename: today + '_Conference.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'letter', orientation: 'landscape' }
+      }).from(element).save();
+    };
+  </script>
+</body>
+</html>
