@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>ConfNote v9 — Diapos et Transcription en parallèle</title>
+  <title>ConfNote v10</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -14,145 +14,124 @@
     .tabular-nums { font-variant-numeric: tabular-nums; }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased selection:bg-indigo-500 selection:text-white">
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased">
   <div class="max-w-3xl mx-auto px-4 py-6 pb-28">
-    <!-- Header -->
     <header class="flex items-center justify-between border-b border-slate-800 pb-4 mb-6">
       <div>
         <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
           <span class="inline-block w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
           ConfNote
-          <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">v9</span>
+          <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">v10</span>
         </h1>
-        <p class="text-xs text-slate-400 mt-0.5">Enregistrement audio et capture de diapositives en parallèle</p>
+        <p class="text-xs text-slate-400 mt-0.5">Enregistrement audio et capture de diapositives</p>
       </div>
-      <button type="button" id="btnSettings" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-700 transition cursor-pointer">
-        Clé API Gemini
+      <button type="button" id="btnSettings" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-700">
+        Cle API Gemini
       </button>
     </header>
 
-    <!-- API Key Panel -->
     <div id="settingsPanel" class="mb-6 p-4 rounded-xl bg-slate-900 border border-indigo-700/60 shadow-lg">
       <div class="flex items-center justify-between mb-2">
-        <label for="apiKeyInput" class="text-sm font-semibold text-slate-200">Clé API Google AI Studio (Gemini)</label>
-        <button type="button" id="btnCloseSettings" class="text-xs text-slate-400 hover:text-white cursor-pointer">Fermer</button>
+        <label for="apiKeyInput" class="text-sm font-semibold text-slate-200">Cle API Google AI Studio (Gemini)</label>
+        <button type="button" id="btnCloseSettings" class="text-xs text-slate-400 hover:text-white">Fermer</button>
       </div>
-      <p class="text-xs text-slate-400 mb-3">Sauvegardée uniquement sur cet appareil. Modèle : <code class="text-indigo-400">gemini-2.5-flash</code>.</p>
+      <p class="text-xs text-slate-400 mb-3">Sauvegardee uniquement sur cet appareil.</p>
       <div class="flex gap-2">
-        <input type="text" id="apiKeyInput" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="AQ.... ou AIzaSy..." class="flex-1 px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-indigo-500" />
-        <button type="button" id="btnSaveKey" class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-sm font-semibold text-white transition cursor-pointer">Enregistrer</button>
+        <input type="text" id="apiKeyInput" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="AQ...." class="flex-1 px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-indigo-500" />
+        <button type="button" id="btnSaveKey" class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-sm font-semibold text-white">Enregistrer</button>
       </div>
-      <p id="keyStatus" class="text-xs text-emerald-400 mt-2 hidden">Clé enregistrée avec succès.</p>
+      <p id="keyStatus" class="text-xs text-emerald-400 mt-2 hidden">Cle enregistree avec succes.</p>
     </div>
 
-    <!-- Session Metadata -->
     <section class="mb-6 bg-slate-900/70 p-4 rounded-xl border border-slate-800">
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-          <label class="block text-xs font-medium text-slate-400 mb-1">Titre de la conférence / rencontre</label>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Titre de la conference</label>
           <input type="text" id="sessionTitle" placeholder="Ex. Tenue de dossiers" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-indigo-500" />
         </div>
         <div>
-          <label class="block text-xs font-medium text-slate-400 mb-1">Conférencier / Intervenant</label>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Conferencier / Intervenant</label>
           <input type="text" id="speakerName" placeholder="Ex. Collecto" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-indigo-500" />
         </div>
       </div>
     </section>
 
-    <!-- Recorder & Camera Controls -->
     <section class="mb-6 bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-xl">
       <div class="flex flex-col items-center text-center">
         <div id="statusBadge" class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800 text-xs font-medium text-slate-300 mb-3">
           <span id="statusDot" class="w-2 h-2 rounded-full bg-slate-500"></span>
-          <span id="statusText">Prêt à enregistrer</span>
+          <span id="statusText">Pret a enregistrer</span>
         </div>
 
         <div id="timerDisplay" class="text-4xl font-bold tabular-nums tracking-tight text-white mb-5">00:00:00</div>
 
         <div class="flex flex-wrap items-center justify-center gap-3 w-full">
-          <button type="button" id="btnStart" class="flex-1 min-w-[140px] py-3.5 px-5 rounded-xl bg-rose-600 hover:bg-rose-500 active:scale-[0.99] text-white font-semibold text-sm shadow-lg shadow-rose-950/50 transition flex items-center justify-center gap-2 cursor-pointer">
-            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></svg>
-            Démarrer
+          <button type="button" id="btnStart" class="flex-1 min-w-[140px] py-3.5 px-5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-semibold text-sm shadow-lg flex items-center justify-center gap-2">
+            Demarrer
           </button>
-
-          <button type="button" id="btnPause" class="hidden py-3.5 px-4 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-semibold text-sm transition cursor-pointer">
+          <button type="button" id="btnPause" class="hidden py-3.5 px-4 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-semibold text-sm">
             Pause
           </button>
-
-          <button type="button" id="btnStop" class="hidden py-3.5 px-5 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-semibold text-sm transition cursor-pointer">
+          <button type="button" id="btnStop" class="hidden py-3.5 px-5 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-semibold text-sm">
             Terminer
           </button>
         </div>
 
-        <!-- Always-visible Diagnostic Banner -->
         <div id="diagBanner" class="w-full mt-3 p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-left text-[11px] text-slate-400 font-mono break-words">
-          État système : prêt v9 (en attente de la clé API)
+          Etat systeme : pret v10 (en attente de la cle API)
         </div>
 
-        <!-- Slide Capture Button -->
         <div class="w-full mt-4 pt-4 border-t border-slate-800">
           <input type="file" id="cameraInput" accept="image/*" capture="environment" class="hidden" />
-          <button type="button" id="btnCaptureSlide" class="w-full py-4 px-5 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-[0.99] text-white font-semibold text-base shadow-lg shadow-indigo-950/50 transition flex items-center justify-center gap-2.5 cursor-pointer">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-              <circle cx="12" cy="13" r="3"/>
-            </svg>
+          <button type="button" id="btnCaptureSlide" class="w-full py-4 px-5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-base shadow-lg flex items-center justify-center gap-2.5">
             Capturer une diapositive
           </button>
-          <p class="text-[11px] text-slate-400 mt-2">Prenez la diapositive en photo : le repère temporel exact est enregistré automatiquement.</p>
+          <p class="text-[11px] text-slate-400 mt-2">Prenez la diapositive en photo : le repere temporel exact est enregistre.</p>
         </div>
       </div>
     </section>
 
-    <!-- Captured Slides Timeline -->
     <section id="slidesSection" class="mb-6 hidden">
       <div class="flex items-center justify-between mb-3">
-        <h2 class="text-sm font-semibold text-slate-200">Diapositives capturées (<span id="slideCount">0</span>)</h2>
-        <button type="button" id="btnClearSession" class="text-xs text-rose-400 hover:text-rose-300 cursor-pointer">Réinitialiser la session</button>
+        <h2 class="text-sm font-semibold text-slate-200">Diapositives capturees (<span id="slideCount">0</span>)</h2>
+        <button type="button" id="btnClearSession" class="text-xs text-rose-400 hover:text-rose-300">Reinitialiser</button>
       </div>
       <div id="slidesList" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
     </section>
 
-    <!-- Generate Parallel Report Action -->
     <section id="processSection" class="mb-8 hidden">
-      <button type="button" id="btnGenerate" class="w-full py-4 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-base shadow-lg shadow-emerald-950/50 transition flex items-center justify-center gap-2 cursor-pointer">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-        </svg>
-        Générer la grille Diapos et Transcription
+      <button type="button" id="btnGenerate" class="w-full py-4 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-base shadow-lg">
+        Generer la grille Diapos et Transcription
       </button>
       <div id="loadingBox" class="hidden mt-4 p-4 rounded-xl bg-slate-900 border border-slate-800 text-center">
-        <div class="inline-block w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mb-2"></div>
-        <p id="loadingText" class="text-sm text-slate-200 font-medium">Analyse de l'audio et extraction du texte des diapositives...</p>
-        <p class="text-xs text-slate-400 mt-1">Cette opération peut prendre 15 à 45 secondes selon la durée de la conférence.</p>
+        <p id="loadingText" class="text-sm text-slate-200 font-medium">Analyse en cours...</p>
       </div>
       <div id="errorBox" class="hidden mt-4 p-4 rounded-xl bg-rose-950/60 border border-rose-800 text-sm text-rose-200"></div>
     </section>
 
-    <!-- Parallel Preview & Export -->
     <section id="resultSection" class="hidden">
       <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-        <h2 class="text-base font-bold text-white">Aperçu du compte rendu parallèle</h2>
+        <h2 class="text-base font-bold text-white">Apercu du compte rendu</h2>
         <div class="flex gap-2">
-          <button type="button" id="btnExportDocx" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow transition flex items-center gap-1.5 cursor-pointer">
-            Télécharger .DOCX
+          <button type="button" id="btnExportDocx" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold">
+            Telecharger .DOCX
           </button>
-          <button type="button" id="btnExportPdf" class="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold shadow transition flex items-center gap-1.5 cursor-pointer">
-            Télécharger .PDF
+          <button type="button" id="btnExportPdf" class="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold">
+            Telecharger .PDF
           </button>
         </div>
       </div>
 
       <div id="printableReport" class="bg-white text-slate-900 rounded-xl p-6 shadow-xl overflow-x-auto">
         <div class="border-b-2 border-slate-800 pb-3 mb-4">
-          <h3 id="reportTitle" class="text-lg font-bold text-slate-900">Compte rendu de conférence</h3>
+          <h3 id="reportTitle" class="text-lg font-bold text-slate-900">Compte rendu</h3>
           <p id="reportMeta" class="text-xs text-slate-600 mt-1"></p>
         </div>
         <table class="w-full border-collapse text-left text-xs sm:text-sm">
           <thead>
             <tr class="bg-slate-100 border-b-2 border-slate-300">
-              <th class="p-3 font-bold text-slate-800 w-1/2 border-r border-slate-300">Contenu de la diapositive (OCR)</th>
-              <th class="p-3 font-bold text-slate-800 w-1/2">Notes de transcription du conférencier</th>
+              <th class="p-3 font-bold text-slate-800 w-1/2 border-r border-slate-300">Contenu de la diapositive</th>
+              <th class="p-3 font-bold text-slate-800 w-1/2">Notes de transcription</th>
             </tr>
           </thead>
           <tbody id="reportTableBody" class="divide-y divide-slate-200"></tbody>
@@ -162,41 +141,455 @@
   </div>
 
   <script>
-    let mediaRecorder = null;
-    let audioChunks = [];
-    let audioBlob = null;
-    let audioMimeType = '';
-    let startTime = null;
-    let pausedDuration = 0;
-    let pauseStart = null;
-    let timerInterval = null;
-    let isRecording = false;
-    let isPaused = false;
-    let wakeLock = null;
-    let slides = [];
-    let structuredRows = [];
-    let cachedApiKey = '';
+    var mediaRecorder = null;
+    var audioChunks = [];
+    var audioBlob = null;
+    var audioMimeType = '';
+    var startTime = null;
+    var pausedDuration = 0;
+    var pauseStart = null;
+    var timerInterval = null;
+    var isRecording = false;
+    var isPaused = false;
+    var slides = [];
+    var structuredRows = [];
+    var cachedApiKey = '';
 
-    const btnSettings = document.getElementById('btnSettings');
-    const settingsPanel = document.getElementById('settingsPanel');
-    const btnCloseSettings = document.getElementById('btnCloseSettings');
-    const apiKeyInput = document.getElementById('apiKeyInput');
-    const btnSaveKey = document.getElementById('btnSaveKey');
-    const keyStatus = document.getElementById('keyStatus');
+    var btnSettings = document.getElementById('btnSettings');
+    var settingsPanel = document.getElementById('settingsPanel');
+    var btnCloseSettings = document.getElementById('btnCloseSettings');
+    var apiKeyInput = document.getElementById('apiKeyInput');
+    var btnSaveKey = document.getElementById('btnSaveKey');
+    var keyStatus = document.getElementById('keyStatus');
 
-    const btnStart = document.getElementById('btnStart');
-    const btnPause = document.getElementById('btnPause');
-    const btnStop = document.getElementById('btnStop');
-    const timerDisplay = document.getElementById('timerDisplay');
-    const statusDot = document.getElementById('statusDot');
-    const statusText = document.getElementById('statusText');
-    const diagBanner = document.getElementById('diagBanner');
+    var btnStart = document.getElementById('btnStart');
+    var btnPause = document.getElementById('btnPause');
+    var btnStop = document.getElementById('btnStop');
+    var timerDisplay = document.getElementById('timerDisplay');
+    var statusDot = document.getElementById('statusDot');
+    var statusText = document.getElementById('statusText');
+    var diagBanner = document.getElementById('diagBanner');
 
-    const btnCaptureSlide = document.getElementById('btnCaptureSlide');
-    const cameraInput = document.getElementById('cameraInput');
-    const slidesSection = document.getElementById('slidesSection');
-    const slidesList = document.getElementById('slidesList');
-    const slideCount = document.getElementById('slideCount');
-    const btnClearSession = document.getElementById('btnClearSession');
+    var btnCaptureSlide = document.getElementById('btnCaptureSlide');
+    var cameraInput = document.getElementById('cameraInput');
+    var slidesSection = document.getElementById('slidesSection');
+    var slidesList = document.getElementById('slidesList');
+    var slideCount = document.getElementById('slideCount');
+    var btnClearSession = document.getElementById('btnClearSession');
 
-    const
+    var processSection = document.getElementById('processSection');
+    var btnGenerate = document.getElementById('btnGenerate');
+    var loadingBox = document.getElementById('loadingBox');
+    var loadingText = document.getElementById('loadingText');
+    var errorBox = document.getElementById('errorBox');
+
+    var resultSection = document.getElementById('resultSection');
+    var reportTitle = document.getElementById('reportTitle');
+    var reportMeta = document.getElementById('reportMeta');
+    var reportTableBody = document.getElementById('reportTableBody');
+    var btnExportDocx = document.getElementById('btnExportDocx');
+    var btnExportPdf = document.getElementById('btnExportPdf');
+
+    function logDiag(msg, isError) {
+      diagBanner.className = isError
+        ? 'w-full mt-3 p-2.5 rounded-lg bg-rose-950/80 border border-rose-800 text-left text-[11px] text-rose-200 font-mono break-words'
+        : 'w-full mt-3 p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-left text-[11px] text-emerald-300 font-mono break-words';
+      diagBanner.textContent = msg;
+    }
+
+    function readHashKey() {
+      var h = window.location.hash || '';
+      if (h.indexOf('#key=') === 0) {
+        return decodeURIComponent(h.substring(5)).trim();
+      }
+      return '';
+    }
+
+    function loadSavedKey() {
+      if (cachedApiKey) return cachedApiKey;
+      var fromHash = readHashKey();
+      if (fromHash) {
+        cachedApiKey = fromHash;
+        return fromHash;
+      }
+      try {
+        var fromLocal = localStorage.getItem('confnote_gemini_key');
+        if (fromLocal) {
+          cachedApiKey = fromLocal;
+          return fromLocal;
+        }
+      } catch (e) {}
+      return apiKeyInput.value.trim();
+    }
+
+    function persistApiKey(val) {
+      cachedApiKey = val;
+      try { localStorage.setItem('confnote_gemini_key', val); } catch (e) {}
+      try { history.replaceState(null, '', '#key=' + encodeURIComponent(val)); } catch (e) {}
+    }
+
+    var initialKey = loadSavedKey();
+    if (initialKey) {
+      apiKeyInput.value = initialKey;
+      persistApiKey(initialKey);
+      settingsPanel.classList.add('hidden');
+      logDiag('Etat systeme : cle API active (' + initialKey.slice(0, 6) + '...)');
+    } else {
+      logDiag('Etat systeme : script v10 actif (en attente de cle API)');
+    }
+
+    btnSettings.onclick = function() {
+      settingsPanel.classList.toggle('hidden');
+    };
+
+    btnCloseSettings.onclick = function() {
+      settingsPanel.classList.add('hidden');
+    };
+
+    btnSaveKey.onclick = function() {
+      var val = apiKeyInput.value.trim();
+      if (!val) {
+        logDiag('Veuillez coller votre cle API avant de cliquer sur Enregistrer.', true);
+        return;
+      }
+      persistApiKey(val);
+      keyStatus.classList.remove('hidden');
+      logDiag('Etat systeme : cle API active (' + val.slice(0, 6) + '...)');
+      setTimeout(function() {
+        keyStatus.classList.add('hidden');
+        settingsPanel.classList.add('hidden');
+      }, 900);
+    };
+
+    function formatSeconds(totalSec) {
+      var hrs = Math.floor(totalSec / 3600);
+      var mins = Math.floor((totalSec % 3600) / 60);
+      var secs = Math.floor(totalSec % 60);
+      return [hrs, mins, secs].map(function(v) { return String(v).padStart(2, '0'); }).join(':');
+    }
+
+    function getElapsedSeconds() {
+      if (!startTime) return 0;
+      var now = isPaused && pauseStart ? pauseStart : Date.now();
+      return Math.max(0, Math.floor((now - startTime - pausedDuration) / 1000));
+    }
+
+    btnStart.onclick = function() {
+      logDiag('Ouverture du microphone...');
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        logDiag('Erreur : microphone indisponible (HTTPS requis).', true);
+        return;
+      }
+
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(function(stream) {
+          try {
+            mediaRecorder = new MediaRecorder(stream);
+            audioMimeType = mediaRecorder.mimeType || 'audio/mp4';
+            audioChunks = [];
+
+            mediaRecorder.ondataavailable = function(e) {
+              if (e.data && e.data.size > 0) audioChunks.push(e.data);
+            };
+
+            mediaRecorder.onstop = function() {
+              var finalType = mediaRecorder.mimeType || audioMimeType || 'audio/mp4';
+              audioBlob = new Blob(audioChunks, { type: finalType });
+              audioMimeType = finalType;
+              stream.getTracks().forEach(function(track) { track.stop(); });
+              logDiag('Audio termine (' + (audioBlob.size / 1024).toFixed(1) + ' Ko)');
+              updateProcessVisibility();
+            };
+
+            mediaRecorder.start();
+            startTime = Date.now();
+            pausedDuration = 0;
+            isRecording = true;
+            isPaused = false;
+
+            clearInterval(timerInterval);
+            timerInterval = setInterval(function() {
+              timerDisplay.textContent = formatSeconds(getElapsedSeconds());
+            }, 500);
+
+            statusDot.className = 'w-2 h-2 rounded-full bg-rose-500 animate-ping';
+            statusText.textContent = 'Enregistrement en cours...';
+            btnStart.classList.add('hidden');
+            btnPause.classList.remove('hidden');
+            btnStop.classList.remove('hidden');
+            logDiag('Enregistrement actif (' + audioMimeType + ')');
+          } catch (recErr) {
+            logDiag('Erreur MediaRecorder : ' + recErr.message, true);
+          }
+        })
+        .catch(function(err) {
+          logDiag('Acces micro bloque : ' + err.name + ' - ' + err.message, true);
+        });
+    };
+
+    btnPause.onclick = function() {
+      if (!mediaRecorder) return;
+      try {
+        if (!isPaused) {
+          mediaRecorder.pause();
+          isPaused = true;
+          pauseStart = Date.now();
+          btnPause.textContent = 'Reprendre';
+          statusText.textContent = 'En pause';
+        } else {
+          mediaRecorder.resume();
+          pausedDuration += Date.now() - pauseStart;
+          pauseStart = null;
+          isPaused = false;
+          btnPause.textContent = 'Pause';
+          statusText.textContent = 'Enregistrement en cours...';
+        }
+      } catch (err) {
+        logDiag('Pause non supportee : ' + err.message, true);
+      }
+    };
+
+    btnStop.onclick = function() {
+      if (!mediaRecorder) return;
+      clearInterval(timerInterval);
+      isRecording = false;
+      isPaused = false;
+      if (mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+      statusDot.className = 'w-2 h-2 rounded-full bg-emerald-400';
+      statusText.textContent = 'Enregistrement termine';
+      btnPause.classList.add('hidden');
+      btnStop.classList.add('hidden');
+      btnStart.classList.remove('hidden');
+      btnStart.textContent = 'Nouvel enregistrement';
+    };
+
+    btnCaptureSlide.onclick = function() {
+      cameraInput.click();
+    };
+
+    cameraInput.onchange = function(e) {
+      var file = e.target.files[0];
+      if (!file) return;
+      var sec = getElapsedSeconds();
+      var stamp = formatSeconds(sec);
+
+      compressImage(file, 1400, 0.82).then(function(compressed) {
+        slides.push({
+          id: Date.now(),
+          timestampSec: sec,
+          timestampStr: stamp,
+          base64: compressed.base64,
+          mimeType: 'image/jpeg',
+          dataUrl: compressed.dataUrl
+        });
+        renderSlides();
+        updateProcessVisibility();
+      }).catch(function(err) {
+        logDiag('Erreur image : ' + err.message, true);
+      });
+      cameraInput.value = '';
+    };
+
+    function compressImage(file, maxWidth, quality) {
+      return new Promise(function(resolve, reject) {
+        var reader = new FileReader();
+        reader.onload = function(event) {
+          var img = new Image();
+          img.onload = function() {
+            var width = img.width;
+            var height = img.height;
+            if (width > maxWidth) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            }
+            var canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            var ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            var dataUrl = canvas.toDataURL('image/jpeg', quality);
+            resolve({ dataUrl: dataUrl, base64: dataUrl.split(',')[1] });
+          };
+          img.onerror = reject;
+          img.src = event.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function renderSlides() {
+      slideCount.textContent = slides.length;
+      if (slides.length === 0) {
+        slidesSection.classList.add('hidden');
+        return;
+      }
+      slidesSection.classList.remove('hidden');
+      slidesList.innerHTML = slides.map(function(s, idx) {
+        return '<div class="relative bg-slate-900 rounded-lg overflow-hidden border border-slate-800">' +
+          '<img src="' + s.dataUrl + '" class="w-full h-24 object-cover" />' +
+          '<div class="p-2 flex items-center justify-between bg-slate-950/90">' +
+            '<span class="text-xs font-bold text-indigo-400">Diapo ' + (idx + 1) + '</span>' +
+            '<span class="text-[11px] tabular-nums text-slate-400">' + s.timestampStr + '</span>' +
+          '</div>' +
+          '<button type="button" onclick="removeSlide(' + s.id + ')" class="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/70 text-white text-xs">X</button>' +
+        '</div>';
+      }).join('');
+    }
+
+    window.removeSlide = function(id) {
+      slides = slides.filter(function(s) { return s.id !== id; });
+      renderSlides();
+      updateProcessVisibility();
+    };
+
+    btnClearSession.onclick = function() {
+      slides = [];
+      audioBlob = null;
+      audioChunks = [];
+      structuredRows = [];
+      timerDisplay.textContent = '00:00:00';
+      statusText.textContent = 'Pret a enregistrer';
+      renderSlides();
+      resultSection.classList.add('hidden');
+      updateProcessVisibility();
+    };
+
+    function updateProcessVisibility() {
+      if (!isRecording && (audioBlob || slides.length > 0)) {
+        processSection.classList.remove('hidden');
+      } else {
+        processSection.classList.add('hidden');
+      }
+    }
+
+    function blobToBase64(blob) {
+      return new Promise(function(resolve, reject) {
+        var reader = new FileReader();
+        reader.onloadend = function() { resolve(reader.result.split(',')[1]); };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    }
+
+    btnGenerate.onclick = async function() {
+      var apiKey = loadSavedKey();
+      if (!apiKey) {
+        settingsPanel.classList.remove('hidden');
+        logDiag('Veuillez enregistrer votre cle API avant de generer.', true);
+        return;
+      }
+
+      errorBox.classList.add('hidden');
+      loadingBox.classList.remove('hidden');
+      btnGenerate.disabled = true;
+
+      try {
+        var parts = [];
+        var promptText = 'Tu es un assistant de prise de notes de conference. Extrais le texte exact de chaque diapositive (' + slides.length + ' photos) et transcris les propos correspondants du conferencier en francais. Reponds uniquement en JSON valide avec la structure : {"rows":[{"slide_label":"Diapositive 1","timestamp":"00:02:15","slide_text":"Texte de la diapo","transcript_notes":"Notes du conferencier"}]}';
+        parts.push({ text: promptText });
+
+        if (audioBlob) {
+          loadingText.textContent = 'Encodage audio...';
+          var audioBase64 = await blobToBase64(audioBlob);
+          var cleanMime = (audioMimeType.split(';')[0] || 'audio/mp4').trim();
+          parts.push({ inline_data: { mime_type: cleanMime, data: audioBase64 } });
+        }
+
+        slides.forEach(function(s, i) {
+          parts.push({ text: 'Diapositive ' + (i + 1) + ' au repere ' + s.timestampStr });
+          parts.push({ inline_data: { mime_type: s.mimeType, data: s.base64 } });
+        });
+
+        loadingText.textContent = 'Generation via Gemini...';
+        var response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+          body: JSON.stringify({
+            contents: [{ parts: parts }],
+            generationConfig: { temperature: 0.2, responseMimeType: 'application/json' }
+          })
+        });
+
+        if (!response.ok) {
+          var errData = await response.json().catch(function() { return {}; });
+          throw new Error((errData.error && errData.error.message) || ('Erreur HTTP ' + response.status));
+        }
+
+        var data = await response.json();
+        var rawText = data.candidates[0].content.parts[0].text;
+        var parsed = JSON.parse(rawText);
+        structuredRows = parsed.rows || [];
+        renderReportPreview();
+      } catch (err) {
+        errorBox.textContent = 'Erreur : ' + err.message;
+        errorBox.classList.remove('hidden');
+      } finally {
+        loadingBox.classList.add('hidden');
+        btnGenerate.disabled = false;
+      }
+    };
+
+    function escapeHtml(str) {
+      return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function renderReportPreview() {
+      var title = document.getElementById('sessionTitle').value.trim() || 'Compte rendu de conference';
+      var speaker = document.getElementById('speakerName').value.trim();
+      var today = new Date().toLocaleDateString('fr-CA');
+
+      reportTitle.textContent = title;
+      reportMeta.textContent = 'Date : ' + today + (speaker ? ' | Conferencier : ' + speaker : '');
+
+      reportTableBody.innerHTML = structuredRows.map(function(row) {
+        return '<tr class="align-top">' +
+          '<td class="p-3 border-r border-slate-300 bg-slate-50/70">' +
+            '<div class="font-bold text-indigo-900 mb-1">' + escapeHtml(row.slide_label) + ' [' + escapeHtml(row.timestamp) + ']</div>' +
+            '<div class="text-slate-800 whitespace-pre-line">' + escapeHtml(row.slide_text) + '</div>' +
+          '</td>' +
+          '<td class="p-3 bg-white">' +
+            '<div class="text-slate-800 whitespace-pre-line">' + escapeHtml(row.transcript_notes) + '</div>' +
+          '</td>' +
+        '</tr>';
+      }).join('');
+
+      resultSection.classList.remove('hidden');
+    }
+
+    btnExportDocx.onclick = async function() {
+      if (!structuredRows.length) return;
+      var d = window.docx;
+      var title = document.getElementById('sessionTitle').value.trim() || 'Compte rendu';
+      var speaker = document.getElementById('speakerName').value.trim();
+      var today = new Date().toISOString().slice(0, 10);
+
+      var headerRow = new d.TableRow({
+        tableHeader: true,
+        children: [
+          new d.TableCell({
+            width: { size: 50, type: d.WidthType.PERCENTAGE },
+            shading: { fill: '1E293B', type: d.ShadingType.CLEAR },
+            children: [new d.Paragraph({ children: [new d.TextRun({ text: 'Contenu de la diapositive', bold: true, color: 'FFFFFF', size: 22 })] })]
+          }),
+          new d.TableCell({
+            width: { size: 50, type: d.WidthType.PERCENTAGE },
+            shading: { fill: '1E293B', type: d.ShadingType.CLEAR },
+            children: [new d.Paragraph({ children: [new d.TextRun({ text: 'Notes de transcription', bold: true, color: 'FFFFFF', size: 22 })] })]
+          })
+        ]
+      });
+
+      var bodyRows = structuredRows.map(function(r) {
+        return new d.TableRow({
+          children: [
+            new d.TableCell({
+              width: { size: 50, type: d.WidthType.PERCENTAGE },
+              children: [
+                new d.Paragraph({ children: [new d.TextRun({ text: r.slide_label + ' [' + (r.timestamp || '') + ']', bold: true, size: 20 })] }),
+                new d.Paragraph({ children: [new d.TextRun({ text: String(r.slide_text || ''), size: 20 })] })
+              ]
+            }),
+            new d.TableCell({
+              width: { size: 50, type: d.WidthType.PERCENTAGE },
+              children: [new d.Paragraph({ children: [new d.TextRun({ text: String(r.transcript
