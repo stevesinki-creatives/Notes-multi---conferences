@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>ConfNote v6 — Diapos &amp; Transcription en parallèle</title>
+  <title>ConfNote v7 — Diapos &amp; Transcription en parallèle</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -22,7 +22,7 @@
         <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
           <span class="inline-block w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
           ConfNote
-          <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">v6</span>
+          <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">v7</span>
         </h1>
         <p class="text-xs text-slate-400 mt-0.5">Enregistrement audio + Capture de diapositives en parallèle</p>
       </div>
@@ -70,29 +70,29 @@
         <div id="timerDisplay" class="text-4xl font-bold tabular-nums tracking-tight text-white mb-5">00:00:00</div>
 
         <div class="flex flex-wrap items-center justify-center gap-3 w-full">
-          <button type="button" id="btnStart" class="flex-1 min-w-[140px] py-3.5 px-5 rounded-xl bg-rose-600 hover:bg-rose-500 active:scale-[0.99] text-white font-semibold text-sm shadow-lg shadow-rose-950/50 transition flex items-center justify-center gap-2">
+          <button type="button" id="btnStart" onclick="startRecording()" class="flex-1 min-w-[140px] py-3.5 px-5 rounded-xl bg-rose-600 hover:bg-rose-500 active:scale-[0.99] text-white font-semibold text-sm shadow-lg shadow-rose-950/50 transition flex items-center justify-center gap-2 cursor-pointer">
             <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></svg>
             Démarrer
           </button>
 
-          <button type="button" id="btnPause" class="hidden py-3.5 px-4 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-semibold text-sm transition">
+          <button type="button" id="btnPause" onclick="togglePauseRecording()" class="hidden py-3.5 px-4 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-semibold text-sm transition cursor-pointer">
             Pause
           </button>
 
-          <button type="button" id="btnStop" class="hidden py-3.5 px-5 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-semibold text-sm transition">
+          <button type="button" id="btnStop" onclick="stopRecording()" class="hidden py-3.5 px-5 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-semibold text-sm transition cursor-pointer">
             Terminer
           </button>
         </div>
 
         <!-- Diagnostic Banner -->
         <div id="diagBanner" class="w-full mt-3 p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-left text-[11px] text-slate-400 font-mono break-words">
-          État système : prêt (en attente de la clé API)
+          État système : prêt v7 (appuyez sur Démarrer)
         </div>
 
         <!-- Slide Capture Button -->
         <div class="w-full mt-4 pt-4 border-t border-slate-800">
           <input type="file" id="cameraInput" accept="image/*" capture="environment" class="hidden" />
-          <button type="button" id="btnCaptureSlide" class="w-full py-4 px-5 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-[0.99] text-white font-semibold text-base shadow-lg shadow-indigo-950/50 transition flex items-center justify-center gap-2.5">
+          <button type="button" id="btnCaptureSlide" onclick="document.getElementById('cameraInput').click()" class="w-full py-4 px-5 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-[0.99] text-white font-semibold text-base shadow-lg shadow-indigo-950/50 transition flex items-center justify-center gap-2.5 cursor-pointer">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
               <circle cx="12" cy="13" r="3"/>
@@ -108,13 +108,195 @@
     <section id="slidesSection" class="mb-6 hidden">
       <div class="flex items-center justify-between mb-3">
         <h2 class="text-sm font-semibold text-slate-200">Diapositives capturées (<span id="slideCount">0</span>)</h2>
-        <button type="button" id="btnClearSession" class="text-xs text-rose-400 hover:text-rose-300">Réinitialiser la session</button>
+        <button type="button" id="btnClearSession" onclick="clearSession()" class="text-xs text-rose-400 hover:text-rose-300 cursor-pointer">Réinitialiser la session</button>
       </div>
       <div id="slidesList" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
     </section>
 
     <!-- Generate Parallel Report Action -->
     <section id="processSection" class="mb-8 hidden">
-      <button type="button" id="btnGenerate" class="w-full py-4 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-base shadow-lg shadow-emerald-950/50 transition flex items-center justify-center gap-2">
+      <button type="button" id="btnGenerate" onclick="generateReport()" class="w-full py-4 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-base shadow-lg shadow-emerald-950/50 transition flex items-center justify-center gap-2 cursor-pointer">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </svg>
+        Générer la grille Diapos + Transcription
+      </button>
+      <div id="loadingBox" class="hidden mt-4 p-4 rounded-xl bg-slate-900 border border-slate-800 text-center">
+        <div class="inline-block w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mb-2"></div>
+        <p id="loadingText" class="text-sm text-slate-200 font-medium">Analyse de l'audio et extraction du texte des diapositives...</p>
+        <p class="text-xs text-slate-400 mt-1">Cette opération peut prendre 15 à 45 secondes selon la durée de la conférence.</p>
+      </div>
+      <div id="errorBox" class="hidden mt-4 p-4 rounded-xl bg-rose-950/60 border border-rose-800 text-sm text-rose-200"></div>
+    </section>
+
+    <!-- Parallel Preview & Export -->
+    <section id="resultSection" class="hidden">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <h2 class="text-base font-bold text-white">Aperçu du compte rendu parallèle</h2>
+        <div class="flex gap-2">
+          <button type="button" id="btnExportDocx" onclick="exportDocx()" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow transition flex items-center gap-1.5 cursor-pointer">
+            Télécharger .DOCX
+          </button>
+          <button type="button" id="btnExportPdf" onclick="exportPdf()" class="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold shadow transition flex items-center gap-1.5 cursor-pointer">
+            Télécharger .PDF
+          </button>
+        </div>
+      </div>
+
+      <div id="printableReport" class="bg-white text-slate-900 rounded-xl p-6 shadow-xl overflow-x-auto">
+        <div class="border-b-2 border-slate-800 pb-3 mb-4">
+          <h3 id="reportTitle" class="text-lg font-bold text-slate-900">Compte rendu de conférence</h3>
+          <p id="reportMeta" class="text-xs text-slate-600 mt-1"></p>
+        </div>
+        <table class="w-full border-collapse text-left text-xs sm:text-sm">
+          <thead>
+            <tr class="bg-slate-100 border-b-2 border-slate-300">
+              <th class="p-3 font-bold text-slate-800 w-1/2 border-r border-slate-300">Contenu de la diapositive (OCR)</th>
+              <th class="p-3 font-bold text-slate-800 w-1/2">Notes de transcription du conférencier</th>
+            </tr>
+          </thead>
+          <tbody id="reportTableBody" class="divide-y divide-slate-200"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    var activeApiKey = '';
+    var NL = String.fromCharCode(10);
+    var mediaRecorder = null;
+    var activeStream = null;
+    var audioChunks = [];
+    var audioBlob = null;
+    var audioMimeType = '';
+    var startTime = null;
+    var pausedDuration = 0;
+    var pauseStart = null;
+    var timerInterval = null;
+    var isRecording = false;
+    var isPaused = false;
+    var wakeLock = null;
+    var slides = [];
+    var structuredRows = [];
+
+    function logDiag(msg, isError) {
+      var banner = document.getElementById('diagBanner');
+      if (!banner) return;
+      banner.className = isError
+        ? 'w-full mt-3 p-2.5 rounded-lg bg-rose-950/80 border border-rose-800 text-left text-[11px] text-rose-200 font-mono break-words'
+        : 'w-full mt-3 p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-left text-[11px] text-emerald-300 font-mono break-words';
+      banner.textContent = msg;
+    }
+
+    window.onerror = function(message, source, lineno) {
+      logDiag('Erreur JS (ligne ' + lineno + ') : ' + message, true);
+    };
+
+    function toggleSettingsPanel() {
+      var panel = document.getElementById('settingsPanel');
+      if (panel) panel.classList.toggle('hidden');
+    }
+
+    function getStoredKey() {
+      if (activeApiKey) return activeApiKey;
+      try {
+        var k = localStorage.getItem('confnote_gemini_key');
+        if (k) {
+          activeApiKey = k;
+          return k;
+        }
+      } catch (e) {}
+      var inp = document.getElementById('apiKeyInput');
+      return inp ? inp.value.trim() : '';
+    }
+
+    function saveApiKey() {
+      var inp = document.getElementById('apiKeyInput');
+      var status = document.getElementById('keyStatus');
+      var panel = document.getElementById('settingsPanel');
+      var val = inp ? inp.value.trim() : '';
+
+      if (!val) {
+        logDiag('Erreur : le champ clé API est vide.', true);
+        return;
+      }
+
+      activeApiKey = val;
+      try {
+        localStorage.setItem('confnote_gemini_key', val);
+      } catch (e) {}
+
+      if (status) {
+        status.textContent = 'Clé enregistrée avec succès.';
+        status.classList.remove('hidden');
+      }
+
+      logDiag('État système : clé API chargée (' + val.slice(0, 6) + '...)');
+
+      setTimeout(function() {
+        if (status) status.classList.add('hidden');
+        if (panel) panel.classList.add('hidden');
+      }, 900);
+    }
+
+    (function initKey() {
+      var k = getStoredKey();
+      if (k) {
+        var inp = document.getElementById('apiKeyInput');
+        var panel = document.getElementById('settingsPanel');
+        if (inp) inp.value = k;
+        if (panel) panel.classList.add('hidden');
+        logDiag('État système : prêt v7 (clé API chargée)');
+      }
+    })();
+
+    function splitLines(text) {
+      return String(text || '').split(String.fromCharCode(13)).join('').split(NL);
+    }
+
+    function formatSeconds(totalSec) {
+      var hrs = Math.floor(totalSec / 3600);
+      var mins = Math.floor((totalSec % 3600) / 60);
+      var secs = Math.floor(totalSec % 60);
+      return [hrs, mins, secs].map(function(v) { return String(v).padStart(2, '0'); }).join(':');
+    }
+
+    function getElapsedSeconds() {
+      if (!startTime) return 0;
+      var now = isPaused && pauseStart ? pauseStart : Date.now();
+      return Math.max(0, Math.floor((now - startTime - pausedDuration) / 1000));
+    }
+
+    function requestWakeLock() {
+      if ('wakeLock' in navigator) {
+        navigator.wakeLock.request('screen').then(function(wl) { wakeLock = wl; }).catch(function() {});
+      }
+    }
+
+    function releaseWakeLock() {
+      if (wakeLock) {
+        wakeLock.release().catch(function() {});
+        wakeLock = null;
+      }
+    }
+
+    function unlockIosAudioContext() {
+      try {
+        var AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) {
+          var ctx = new AudioCtx();
+          if (ctx.state === 'suspended') ctx.resume();
+        }
+      } catch (e) {}
+    }
+
+    function startRecording() {
+      logDiag('Tap Démarrer reçu — initialisation audio iOS...');
+      unlockIosAudioContext();
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        logDiag('Erreur : microphone bloqué par le navigateur (ouvrez le lien directement dans Safari, pas dans une vue intégrée).', true);
+        return;
+      }
+
+      var
