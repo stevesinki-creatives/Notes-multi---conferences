@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>ConfNote v4 — Diapos &amp; Transcription en parallèle</title>
+  <title>ConfNote v5 — Diapos &amp; Transcription en parallèle</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -22,20 +22,20 @@
         <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
           <span class="inline-block w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
           ConfNote
-          <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800">v4</span>
+          <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">v5</span>
         </h1>
         <p class="text-xs text-slate-400 mt-0.5">Enregistrement audio + Capture de diapositives en parallèle</p>
       </div>
-      <button type="button" id="btnSettings" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-700 transition">
+      <button type="button" id="btnSettings" onclick="document.getElementById('settingsPanel').classList.toggle('hidden')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-700 transition cursor-pointer">
         Clé API Gemini
       </button>
     </header>
 
-    <!-- API Key Panel -->
-    <div id="settingsPanel" class="hidden mb-6 p-4 rounded-xl bg-slate-900 border border-slate-800 shadow-lg">
+    <!-- API Key Panel (visible by default until a key is saved) -->
+    <div id="settingsPanel" class="mb-6 p-4 rounded-xl bg-slate-900 border border-indigo-700/60 shadow-lg">
       <div class="flex items-center justify-between mb-2">
         <label for="apiKeyInput" class="text-sm font-semibold text-slate-200">Clé API Google AI Studio (Gemini)</label>
-        <button type="button" id="btnCloseSettings" class="text-xs text-slate-400 hover:text-white">Fermer</button>
+        <button type="button" id="btnCloseSettings" onclick="document.getElementById('settingsPanel').classList.add('hidden')" class="text-xs text-slate-400 hover:text-white">Fermer</button>
       </div>
       <p class="text-xs text-slate-400 mb-3">Sauvegardée uniquement en local sur cet appareil. Modèle : <code class="text-indigo-400">gemini-2.5-flash</code>.</p>
       <div class="flex gap-2">
@@ -84,7 +84,7 @@
           </button>
         </div>
 
-        <!-- Always-visible Diagnostic Banner -->
+        <!-- Diagnostic Banner -->
         <div id="diagBanner" class="w-full mt-3 p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-left text-[11px] text-slate-400 font-mono break-words">
           État système : prêt (appuyez sur Démarrer)
         </div>
@@ -162,6 +162,9 @@
   </div>
 
   <script>
+    const NL = String.fromCharCode(10);
+    const LINE_SPLIT_RE = new RegExp('\\r?\\n');
+
     let mediaRecorder = null;
     let audioChunks = [];
     let audioBlob = null;
@@ -176,9 +179,7 @@
     let slides = [];
     let structuredRows = [];
 
-    const btnSettings = document.getElementById('btnSettings');
     const settingsPanel = document.getElementById('settingsPanel');
-    const btnCloseSettings = document.getElementById('btnCloseSettings');
     const apiKeyInput = document.getElementById('apiKeyInput');
     const btnSaveKey = document.getElementById('btnSaveKey');
     const keyStatus = document.getElementById('keyStatus');
@@ -211,7 +212,7 @@
     const btnExportDocx = document.getElementById('btnExportDocx');
     const btnExportPdf = document.getElementById('btnExportPdf');
 
-    function logDiag(msg, isError = false) {
+    function logDiag(msg, isError) {
       diagBanner.className = isError
         ? 'w-full mt-3 p-2.5 rounded-lg bg-rose-950/80 border border-rose-800 text-left text-[11px] text-rose-200 font-mono break-words'
         : 'w-full mt-3 p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-left text-[11px] text-emerald-300 font-mono break-words';
@@ -219,35 +220,36 @@
     }
 
     window.onerror = function(message, source, lineno) {
-      logDiag(`Erreur JS (ligne ${lineno}) : ${message}`, true);
+      logDiag('Erreur JS (ligne ' + lineno + ') : ' + message, true);
     };
 
     const savedKey = localStorage.getItem('confnote_gemini_key');
     if (savedKey) {
       apiKeyInput.value = savedKey;
-    } else {
-      settingsPanel.classList.remove('hidden');
+      settingsPanel.classList.add('hidden');
+      logDiag('État système : prêt (clé API chargée)');
     }
 
-    btnSettings.addEventListener('click', () => settingsPanel.classList.toggle('hidden'));
-    btnCloseSettings.addEventListener('click', () => settingsPanel.classList.add('hidden'));
-    btnSaveKey.addEventListener('click', () => {
+    btnSaveKey.addEventListener('click', function() {
       const val = apiKeyInput.value.trim();
-      if (val) {
-        localStorage.setItem('confnote_gemini_key', val);
-        keyStatus.classList.remove('hidden');
-        setTimeout(() => {
-          keyStatus.classList.add('hidden');
-          settingsPanel.classList.add('hidden');
-        }, 1200);
+      if (!val) {
+        alert('Veuillez coller votre clé API avant de cliquer sur Enregistrer.');
+        return;
       }
+      localStorage.setItem('confnote_gemini_key', val);
+      keyStatus.classList.remove('hidden');
+      logDiag('État système : clé API enregistrée');
+      setTimeout(function() {
+        keyStatus.classList.add('hidden');
+        settingsPanel.classList.add('hidden');
+      }, 1000);
     });
 
     function formatSeconds(totalSec) {
       const hrs = Math.floor(totalSec / 3600);
       const mins = Math.floor((totalSec % 3600) / 60);
       const secs = Math.floor(totalSec % 60);
-      return [hrs, mins, secs].map(v => String(v).padStart(2, '0')).join(':');
+      return [hrs, mins, secs].map(function(v) { return String(v).padStart(2, '0'); }).join(':');
     }
 
     function getElapsedSeconds() {
@@ -256,56 +258,93 @@
       return Math.max(0, Math.floor((now - startTime - pausedDuration) / 1000));
     }
 
-    async function requestWakeLock() {
-      try {
-        if ('wakeLock' in navigator) {
-          wakeLock = await navigator.wakeLock.request('screen');
-        }
-      } catch (err) {}
+    function requestWakeLock() {
+      if ('wakeLock' in navigator) {
+        navigator.wakeLock.request('screen').then(function(wl) { wakeLock = wl; }).catch(function() {});
+      }
     }
 
     function releaseWakeLock() {
       if (wakeLock) {
-        wakeLock.release().catch(() => {});
+        wakeLock.release().catch(function() {});
         wakeLock = null;
       }
     }
 
-    btnStart.addEventListener('click', () => {
-      logDiag("Clic détecté — ouverture du microphone...");
+    btnStart.addEventListener('click', function() {
+      logDiag('Clic détecté — ouverture du microphone...');
 
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        logDiag("Erreur : navigator.mediaDevices indisponible (HTTPS requis).", true);
+        logDiag('Erreur : navigator.mediaDevices indisponible (HTTPS requis).', true);
         return;
       }
 
       navigator.mediaDevices.getUserMedia({ audio: true })
-        .then((stream) => {
+        .then(function(stream) {
           try {
             mediaRecorder = new MediaRecorder(stream);
             audioMimeType = mediaRecorder.mimeType || 'audio/mp4';
             audioChunks = [];
 
-            mediaRecorder.ondataavailable = (e) => {
+            mediaRecorder.ondataavailable = function(e) {
               if (e.data && e.data.size > 0) {
                 audioChunks.push(e.data);
               }
             };
 
-            mediaRecorder.onerror = (e) => {
-              logDiag("Erreur MediaRecorder : " + (e.error?.message || "échec"), true);
+            mediaRecorder.onerror = function(e) {
+              logDiag('Erreur MediaRecorder : ' + (e.error ? e.error.message : 'échec'), true);
             };
 
-            mediaRecorder.onstop = () => {
+            mediaRecorder.onstop = function() {
               const finalType = mediaRecorder.mimeType || audioMimeType || 'audio/mp4';
               audioBlob = new Blob(audioChunks, { type: finalType });
               audioMimeType = finalType;
-              stream.getTracks().forEach(track => track.stop());
+              stream.getTracks().forEach(function(track) { track.stop(); });
               releaseWakeLock();
-              logDiag(`Audio terminé (${(audioBlob.size / 1024).toFixed(1)} Ko, ${finalType})`);
+              logDiag('Audio terminé (' + (audioBlob.size / 1024).toFixed(1) + ' Ko, ' + finalType + ')');
               updateProcessVisibility();
             };
 
             mediaRecorder.start();
 
             startTime = Date.now();
+            pausedDuration = 0;
+            isRecording = true;
+            isPaused = false;
+            requestWakeLock();
+
+            clearInterval(timerInterval);
+            timerInterval = setInterval(function() {
+              timerDisplay.textContent = formatSeconds(getElapsedSeconds());
+            }, 500);
+
+            statusDot.className = 'w-2 h-2 rounded-full bg-rose-500 animate-ping';
+            statusText.textContent = 'Enregistrement en cours...';
+            btnStart.classList.add('hidden');
+            btnPause.classList.remove('hidden');
+            btnStop.classList.remove('hidden');
+            logDiag('Enregistrement actif (' + (audioMimeType || 'format natif iOS') + ')');
+          } catch (recErr) {
+            logDiag('Erreur création MediaRecorder : ' + recErr.message, true);
+          }
+        })
+        .catch(function(err) {
+          logDiag('Accès micro refusé/bloqué : ' + err.name + ' — ' + err.message, true);
+        });
+    });
+
+    btnPause.addEventListener('click', function() {
+      if (!mediaRecorder) return;
+      try {
+        if (!isPaused) {
+          mediaRecorder.pause();
+          isPaused = true;
+          pauseStart = Date.now();
+          btnPause.textContent = 'Reprendre';
+          statusDot.className = 'w-2 h-2 rounded-full bg-amber-400';
+          statusText.textContent = 'En pause';
+        } else {
+          mediaRecorder.resume();
+          pausedDuration += Date.now() - pauseStart;
+          pauseStart = null
